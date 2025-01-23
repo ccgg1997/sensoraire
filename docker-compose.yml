@@ -1,0 +1,74 @@
+version: '3.9'
+services:
+
+  database:
+    image: postgres:latest
+    container_name: air_quality_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: air_quality
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - database
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: air_quality_backend
+    environment:
+      DATABASE_URL: postgres://user:password@database:5432/air_quality
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: air_quality_frontend
+    environment:
+      TELEGRAM_BOT_TOKEN: your_telegram_bot_token
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+
+  # hardware:
+  #   build:
+  #     context: ./hardware
+  #     dockerfile: Dockerfile
+  #   container_name: air_quality_hardware
+  #   ports:
+  #     - "4000:4000"
+  #   volumes:
+  #     - ./hardware:/app
+
+  # ml:
+  #   build:
+  #     context: ./ml
+  #     dockerfile: Dockerfile
+  #   container_name: air_quality_ml
+  #   ports:
+  #     - "6000:6000"
+  #   volumes:
+  #     - ./ml:/app
+
+volumes:
+  postgres_data:
